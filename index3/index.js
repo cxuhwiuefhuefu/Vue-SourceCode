@@ -57,6 +57,38 @@ function proxyObj(obj, newObj) {
 
 
 
+// 我们要想构建一个虚拟DOM 我们得有DOM节点 拿虚拟DOM得有虚拟DOM的节点 虚拟DOM的节点是用来描述真实的DOM
+function VNode(dom, type, value) { // type:标签还是文本  value:它的文本它的内容
+    this.dom = dom;
+    this.type = type;
+    this.value = value;
+    this.childNodes = [];
+
+    this.appendChild = function(vnode) {
+        if(!(vnode instanceof VNode)) {
+            throw Error("node is not instanceof of VNode!");
+        }
+        this.childNodes.push(vnode);
+    }
+}
+function buildVirtualNode(node) { // 变成虚拟的DOM节点
+    var temp = new VNode(node, node.nodeType, node.nodeValue);
+    for(let i = 0; i < node.childNodes.length; i++) {
+        if(node.childNodes[i].nodeType == 1) { // dom节点
+            var child = buildVirtualNode.call(this, node.childNodes[i]);
+            temp.appendChild(child);
+        }else if(node.childNodes[i].nodeType == 3) { // 文本节点
+            var child = buildVirtualNode.call(this, node.childNodes[i]);
+            temp.appendChild(child);
+        }else { // 注释我们就不管它了
+            continue;
+        }
+    }
+    return temp;
+}
+
+
+
 
 
 // 建立一个映射关系
@@ -72,7 +104,9 @@ function MyMVVM(id, data) { // div的id, 数据
     this.cloneObj = deepClone(this.data);
     proxyObj.call(this, this.data, this.cloneObj)
     
-    return render(this.el, this.originTemplate, this.templates, this.data);
+    render(this.el, this.originTemplate, this.templates, this.data);
+
+    this.vNodeRoot = buildVirtualNode(this.el);
 }
 
 

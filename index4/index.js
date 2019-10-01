@@ -1,5 +1,6 @@
 // 解析固定模式的东西 把固定模式的东西叫做模板 分析模板
 // 把内容全部传进来 然后再解析哪部分是模板
+// 分析模板
 function analysisTemplate(html) {  // 传进的是html
     return html.match(/{{[a-zA-Z_]+[a-zA-Z0-9_]*}}/g);
 }
@@ -57,6 +58,56 @@ function proxyObj(obj, newObj) {
 
 
 
+// 我们要想构建一个虚拟DOM 我们得有DOM节点 拿虚拟DOM得有虚拟DOM的节点 虚拟DOM的节点是用来描述真实的DOM
+function VNode(dom, type, value) { // type:标签还是文本  value:它的文本它的内容
+    this.dom = dom;
+    this.type = type;
+    this.value = value;
+    this.childNodes = [];
+
+    this.appendChild = function(vnode) {
+        if(!(vnode instanceof VNode)) {
+            throw Error("node is not instanceof of VNode!");
+        }
+        this.childNodes.push(vnode);
+    }
+}
+function buildVirtualNode(node) { // 变成虚拟的DOM节点
+    var temp = new VNode(node, node.nodeType, node.nodeValue);
+    for(let i = 0; i < node.childNodes.length; i++) {
+        if(node.childNodes[i].nodeType == 1) { // dom节点
+            var child = buildVirtualNode.call(this, node.childNodes[i]);
+            temp.appendChild(child);
+        }else if(node.childNodes[i].nodeType == 3) { // 文本节点
+            console.log(node.childNodes[i]);
+
+            // 分析模板
+            var arr = analysisTemplate(node.childNodes[i].nodeValue);
+            // console.log(arr);
+
+            for(let j = 0; arr && j < arr.length; j++) {
+                if(this.mapping.get(arr[j])) {
+                    let templateArr = this.mapping.get(arr[j]);
+                    // console.length(templateArr);
+                    templateArr.push(node.childNodes[i]);
+                    this.mapping.set(arr[i], templateArr);
+                }else {
+                    this.mapping.set(arr[i], [node.childNodes[i]]);
+                }
+                
+            }
+
+            var child = buildVirtualNode.call(this, node.childNodes[i]);
+            temp.appendChild(child);
+        }else { // 注释我们就不管它了
+            continue;
+        }
+    }
+    return temp;
+}
+
+
+
 
 
 // 建立一个映射关系
@@ -70,9 +121,17 @@ function MyMVVM(id, data) { // div的id, 数据
     this.templates = analysisTemplate(this.el.innerHTML);
     
     this.cloneObj = deepClone(this.data);
+
+    // 映射关系
+    this.mapping = new Map(); // key:模板名   value:是数组 数组里面的每个元素是一个节点
+
     proxyObj.call(this, this.data, this.cloneObj)
     
-    return render(this.el, this.originTemplate, this.templates, this.data);
+    // 获取根节点在渲染之前
+    this.vNodeRoot = buildVirtualNode.call(this, this.el);
+    
+  
+    render(this.el, this.originTemplate, this.templates, this.data);
 }
 
 
