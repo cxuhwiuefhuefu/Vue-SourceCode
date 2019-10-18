@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div id="test">
+        你好，{{content}}<br>
+        <span>{{description}}</span>
+    </div>
+
+    <script type="module">
+        import Due from "./core/index.js";
+        // let test = new Due();
+        window.test = new Due({// 这样可以被全局访问到
+            el: "test",
+            data: {
+                content: "panda",
+                description: "oanda say hello"
+            }
+        }); 
+
+    </script>
+</body>
+</html>
