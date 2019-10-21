@@ -13,13 +13,23 @@
     </div>
 
     <script type="module">
+        // 导入入口函数
         import Due from "./core/index.js";
+        
         // let test = new Due();
         window.test = new Due({// 这样可以被全局访问到
             el: "test",
             data: {
                 content: "panda",
-                description: "oanda say hello"
+                description: "panda say hello",
+                obj: {
+                    x: 1,
+                    y: 2
+                },
+                list: [
+                    {a: "panda", b: 18}, 
+                    {a: "monkey", b: 20}
+                ]
             }
         }); 
 
